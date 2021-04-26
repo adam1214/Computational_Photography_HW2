@@ -176,15 +176,16 @@ def RL_energy(img_in, k_in, I_in, to_linear):
     k_in = k_in.astype(np.float32)/np.sum(k_in)
     
     energy = np.zeros(I_in.shape)
-    for ch in range(0, 3, 1):
-        A = np.zeros(I_in.shape)
-        A[:,:,0] = convolve2d(I_in[:,:,0], k_in, boundary='symm', mode='same')
-        A[:,:,1] = convolve2d(I_in[:,:,1], k_in, boundary='symm', mode='same')
-        A[:,:,2] = convolve2d(I_in[:,:,2], k_in, boundary='symm', mode='same')
-        
-        C = np.log(A, dtype=np.float32)
-        energy = energy + (A - B*C)
-    return (np.sum(energy[:,:,0])+np.sum(energy[:,:,1])+np.sum(energy[:,:,2]))/3
+
+    A = np.zeros(I_in.shape)
+    A[:,:,0] = convolve2d(I_in[:,:,0], k_in, boundary='symm', mode='same')
+    A[:,:,1] = convolve2d(I_in[:,:,1], k_in, boundary='symm', mode='same')
+    A[:,:,2] = convolve2d(I_in[:,:,2], k_in, boundary='symm', mode='same')
+    
+    C = np.log(A, dtype=np.float32)
+    energy = energy + (A - B*C)
+
+    return np.sum(energy[:,:,0])+np.sum(energy[:,:,1])+np.sum(energy[:,:,2])
 
 def BRL_energy(img_in, k_in, I_in, lamb_da, sigma_r, rk, to_linear):
     """ BRL energy
@@ -201,17 +202,30 @@ def BRL_energy(img_in, k_in, I_in, lamb_da, sigma_r, rk, to_linear):
             Todo:
                 BRL energy
     """
+    I_in = I_in/255.
+    B = img_in/255.
+    k_in = k_in.astype(np.float32)/np.sum(k_in)
     
+    energy = np.zeros(I_in.shape)
 
-    #return energy
+    A = np.zeros(I_in.shape)
+    A[:,:,0] = convolve2d(I_in[:,:,0], k_in, boundary='symm', mode='same')
+    A[:,:,1] = convolve2d(I_in[:,:,1], k_in, boundary='symm', mode='same')
+    A[:,:,2] = convolve2d(I_in[:,:,2], k_in, boundary='symm', mode='same')
+    
+    C = np.log(A, dtype=np.float32)
+    energy = energy + (A - B*C)
+
+    return np.sum(energy[:,:,0])+np.sum(energy[:,:,1])+np.sum(energy[:,:,2])
+
 
 if __name__ == "__main__":
     # for debug
     '''
     Change the input file name/path here
     '''
-    input_filename = 'curiosity_medium.png'
-    kernel_filename = 'kernel_medium.png'
+    input_filename = 'curiosity_small.png'
+    kernel_filename = 'kernel_small.png'
 
     input_filepath = '../data/blurred_image/'+input_filename
     kernel_filepath = '../data/kernel/'+kernel_filename
@@ -294,8 +308,7 @@ if __name__ == "__main__":
 
     RL_energy_period = RL_energy_end - RL_energy_start
     print("RL process time = %f sec"%RL_energy_period)
-    '''
-
+    
     ############# BRL deconvolution #############
     print ("start BRL deconvolution...")
 
@@ -336,3 +349,37 @@ if __name__ == "__main__":
 
     BRL_period = BRL_end - BRL_start
     print("BRL process time = %f sec"%BRL_period)
+    '''
+    
+    ############# BRL energy #############
+    I_filename = 'BRL_s_iter25_rk6_si50.00_lam0.030.png'
+    I_filepath = '../result/' + I_filename
+    I = Image.open(I_filepath)
+    I_in = np.asarray(I)
+
+    print ("start BRL energy...")
+
+    # calculate in linear domain or not
+    to_linear = 'False'; #'True' for calculate in linear domain, 'False' for calculate in nonlinear domain
+
+    """
+    Adjust parameters here
+    """
+    rk = 6
+    sigma_r = 50.0/255/255
+    lamb_da = 0.03/255
+
+    BRL_energy_start = time.time()
+    energy =  BRL_energy(img_in, k_in, I_in, lamb_da, sigma_r, rk, to_linear)
+    BRL_energy_end = time.time()
+
+    # compare with reference answer and show processing time
+    
+    #change dictionary key 'BRL_a', 'BRL_b', 'BRL_c', 'BRL_d' here
+    
+    energy_dict = np.load('../ref_ans/energy_dict.npy',allow_pickle='TRUE').item()
+    print("Error = %f %%" % ( abs(1-energy/energy_dict['BRL_a'])*100) )
+
+    BRL_energy_period = BRL_energy_end - BRL_energy_start
+    print("BRL process time = %f sec"%BRL_energy_period)
+    
