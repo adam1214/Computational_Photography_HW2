@@ -206,7 +206,7 @@ def BRL_energy(img_in, k_in, I_in, lamb_da, sigma_r, rk, to_linear):
     B = img_in/255.
     k_in = k_in.astype(np.float32)/np.sum(k_in)
     
-    energy = np.zeros(I_in.shape)
+    RL_energy = np.zeros(I_in.shape)
 
     A = np.zeros(I_in.shape)
     A[:,:,0] = convolve2d(I_in[:,:,0], k_in, boundary='symm', mode='same')
@@ -214,9 +214,40 @@ def BRL_energy(img_in, k_in, I_in, lamb_da, sigma_r, rk, to_linear):
     A[:,:,2] = convolve2d(I_in[:,:,2], k_in, boundary='symm', mode='same')
     
     C = np.log(A, dtype=np.float32)
-    energy = energy + (A - B*C)
+    RL_energy = RL_energy + (A - B*C)
+    RL_energy_scalar = np.sum(RL_energy[:,:,0])+np.sum(RL_energy[:,:,1])+np.sum(RL_energy[:,:,2])
+    ############################### RL term above###############################
+    
+    r_omega = 0.5 * rk
+    sigma_s = (r_omega/3.)**2
+    
+    omega_window_size = int(2*r_omega) + 1
+    x, y = np.mgrid[0:omega_window_size, 0:omega_window_size] - (omega_window_size-1)/2
+    gau_kernel = np.exp(-(x**2+y**2)/(2.*sigma_s))
+    gau_kernel = np.stack((gau_kernel, gau_kernel, gau_kernel), axis=2)
 
-    return np.sum(energy[:,:,0])+np.sum(energy[:,:,1])+np.sum(energy[:,:,2])
+    E_B_I = np.zeros(I_in.shape)
+    pdsize = int(omega_window_size/2)
+    padded = np.zeros((I_in.shape[0]+pdsize*2, I_in.shape[1]+pdsize*2))
+    padded = np.stack((padded,padded,padded), axis=2)
+    for ch in range(0,3,1):
+        # Pad the Image, Assume Square filter
+        padded[:,:,ch] = np.pad(I_in[:,:,ch], ((pdsize, pdsize), (pdsize, pdsize)), 'symmetric')
+
+    for i in range(pdsize, padded.shape[0] - pdsize, 1):
+        for j in range(pdsize, padded.shape[1] - pdsize, 1):
+            value_kernel = 1 - np.exp(-((padded[i,j,:] - padded[i-pdsize:i+pdsize+1, j-pdsize:j+pdsize+1,:])**2) / (2. * sigma_r))
+            total_kernel = gau_kernel * value_kernel
+            E_B_I[i-pdsize,j-pdsize,0] = np.sum(total_kernel[:,:,0]) # scalar
+            E_B_I[i-pdsize,j-pdsize,1] = np.sum(total_kernel[:,:,1]) # scalar
+            E_B_I[i-pdsize,j-pdsize,2] = np.sum(total_kernel[:,:,2]) # scalar
+    
+    total_energy_scalar = 0
+    total_energy_scalar = total_energy_scalar + (RL_energy_scalar + lamb_da*np.sum(E_B_I[:,:,0]))
+    total_energy_scalar = total_energy_scalar + (RL_energy_scalar + lamb_da*np.sum(E_B_I[:,:,1]))
+    total_energy_scalar = total_energy_scalar + (RL_energy_scalar + lamb_da*np.sum(E_B_I[:,:,2]))
+
+    return total_energy_scalar/3
 
 
 if __name__ == "__main__":
@@ -224,8 +255,8 @@ if __name__ == "__main__":
     '''
     Change the input file name/path here
     '''
-    input_filename = 'curiosity_small.png'
-    kernel_filename = 'kernel_small.png'
+    input_filename = 'curiosity_medium.png'
+    kernel_filename = 'kernel_medium.png'
 
     input_filepath = '../data/blurred_image/'+input_filename
     kernel_filepath = '../data/kernel/'+kernel_filename
@@ -350,9 +381,8 @@ if __name__ == "__main__":
     BRL_period = BRL_end - BRL_start
     print("BRL process time = %f sec"%BRL_period)
     '''
-    
     ############# BRL energy #############
-    I_filename = 'BRL_s_iter25_rk6_si50.00_lam0.030.png'
+    I_filename = 'BRL_s_iter55_rk12_si25.00_lam0.006.png'
     I_filepath = '../result/' + I_filename
     I = Image.open(I_filepath)
     I_in = np.asarray(I)
@@ -365,9 +395,9 @@ if __name__ == "__main__":
     """
     Adjust parameters here
     """
-    rk = 6
-    sigma_r = 50.0/255/255
-    lamb_da = 0.03/255
+    rk = 12
+    sigma_r = 25.0/255/255
+    lamb_da = 0.006/255
 
     BRL_energy_start = time.time()
     energy =  BRL_energy(img_in, k_in, I_in, lamb_da, sigma_r, rk, to_linear)
@@ -378,8 +408,7 @@ if __name__ == "__main__":
     #change dictionary key 'BRL_a', 'BRL_b', 'BRL_c', 'BRL_d' here
     
     energy_dict = np.load('../ref_ans/energy_dict.npy',allow_pickle='TRUE').item()
-    print("Error = %f %%" % ( abs(1-energy/energy_dict['BRL_a'])*100) )
+    print("Error = %f %%" % ( abs(1-energy/energy_dict['BRL_d'])*100) )
 
     BRL_energy_period = BRL_energy_end - BRL_energy_start
     print("BRL process time = %f sec"%BRL_energy_period)
-    
