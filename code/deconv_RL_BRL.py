@@ -255,8 +255,8 @@ if __name__ == "__main__":
     '''
     Change the input file name/path here
     '''
-    input_filename = 'curiosity_medium.png'
-    kernel_filename = 'kernel_medium.png'
+    input_filename = 'curiosity_small.png'
+    kernel_filename = 'kernel_small.png'
 
     input_filepath = '../data/blurred_image/'+input_filename
     kernel_filepath = '../data/kernel/'+kernel_filename
@@ -301,13 +301,13 @@ if __name__ == "__main__":
     plt.show()
 
     # store image
-    imageio.imwrite('../result/RL_'+ 's' +'_iter%d.png' %(max_iter_RL), RL_result)
+    imageio.imwrite('../my_RL_BRL_result/RL_'+ 's' +'_iter%d.png' %(max_iter_RL), RL_result)
 
     # compare with reference answer and show processing time
     img_ref_RL = Image.open('../ref_ans/curiosity_medium/rl_deblur55.png')
 
     img_ref_RL = np.asarray(img_ref_RL)
-    your_RL = Image.open('../result/RL_'+ 's' +'_iter%d.png' %(max_iter_RL))
+    your_RL = Image.open('../my_RL_BRL_result/RL_'+ 's' +'_iter%d.png' %(max_iter_RL))
     your_RL = np.asarray(your_RL)
 
     print("psnr = %f" %PSNR_UCHAR3(img_ref_RL, your_RL))
@@ -317,7 +317,7 @@ if __name__ == "__main__":
     
     ############# RL energy #############
     I_filename = 'RL_s_iter55.png'
-    I_filepath = '../result/' + I_filename
+    I_filepath = '../my_RL_BRL_result/' + I_filename
     I = Image.open(I_filepath)
     I_in = np.asarray(I)
 
@@ -339,7 +339,7 @@ if __name__ == "__main__":
 
     RL_energy_period = RL_energy_end - RL_energy_start
     print("RL process time = %f sec"%RL_energy_period)
-    
+    '''
     ############# BRL deconvolution #############
     print ("start BRL deconvolution...")
 
@@ -348,10 +348,10 @@ if __name__ == "__main__":
     Adjust parameters here
     """
     # for BRL
-    max_iter_BRL = 55
-    rk = 12
-    sigma_r = 25.0/255/255
-    lamb_da = 0.006/255
+    max_iter_BRL = 25
+    rk = 6
+    sigma_r = 50.0/255/255
+    lamb_da = 0.03/255
 
     # deblur in linear domain or not
     to_linear = 'False'; #'True' for deblur in linear domain, 'False' for deblur in nonlinear domain
@@ -368,12 +368,12 @@ if __name__ == "__main__":
     plt.show()
 
     # store image
-    imageio.imwrite('../result/BRL_'+ 's' +'_iter%d_rk%d_si%0.2f_lam%0.3f.png' %(max_iter_BRL, rk, sigma_r*255*255, lamb_da*255), BRL_result)
+    imageio.imwrite('../my_RL_BRL_result/BRL_'+ 's' +'_iter%d_rk%d_si%0.2f_lam%0.3f.png' %(max_iter_BRL, rk, sigma_r*255*255, lamb_da*255), BRL_result)
 
     # compare with reference answer
     img_ref_BRL = Image.open('../ref_ans/curiosity_medium/brl_deblur_lam0.006.png')
     img_ref_BRL = np.asarray(img_ref_BRL)
-    your_BRL = Image.open('../result/BRL_'+ 's' +'_iter%d_rk%d_si%0.2f_lam%0.3f.png' %(max_iter_BRL, rk, sigma_r*255*255, lamb_da*255))
+    your_BRL = Image.open('../my_RL_BRL_result/BRL_'+ 's' +'_iter%d_rk%d_si%0.2f_lam%0.3f.png' %(max_iter_BRL, rk, sigma_r*255*255, lamb_da*255))
     your_BRL = np.asarray(your_BRL)
 
     print("psnr = %f" %PSNR_UCHAR3(img_ref_BRL, your_BRL))
@@ -383,7 +383,7 @@ if __name__ == "__main__":
     '''
     ############# BRL energy #############
     I_filename = 'BRL_s_iter55_rk12_si25.00_lam0.006.png'
-    I_filepath = '../result/' + I_filename
+    I_filepath = '../my_RL_BRL_result/' + I_filename
     I = Image.open(I_filepath)
     I_in = np.asarray(I)
 
@@ -412,3 +412,4 @@ if __name__ == "__main__":
 
     BRL_energy_period = BRL_energy_end - BRL_energy_start
     print("BRL process time = %f sec"%BRL_energy_period)
+    '''
