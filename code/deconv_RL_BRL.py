@@ -242,12 +242,12 @@ def BRL_energy(img_in, k_in, I_in, lamb_da, sigma_r, rk, to_linear):
             E_B_I[i-pdsize,j-pdsize,1] = np.sum(total_kernel[:,:,1]) # scalar
             E_B_I[i-pdsize,j-pdsize,2] = np.sum(total_kernel[:,:,2]) # scalar
     
-    total_energy_scalar = 0
-    total_energy_scalar = total_energy_scalar + (RL_energy_scalar + lamb_da*np.sum(E_B_I[:,:,0]))
-    total_energy_scalar = total_energy_scalar + (RL_energy_scalar + lamb_da*np.sum(E_B_I[:,:,1]))
-    total_energy_scalar = total_energy_scalar + (RL_energy_scalar + lamb_da*np.sum(E_B_I[:,:,2]))
+    total_energy_scalar = RL_energy_scalar
+    total_energy_scalar += lamb_da*np.sum(E_B_I[:,:,0])
+    total_energy_scalar += lamb_da*np.sum(E_B_I[:,:,1])
+    total_energy_scalar += lamb_da*np.sum(E_B_I[:,:,2])
 
-    return total_energy_scalar/3
+    return total_energy_scalar
 
 
 if __name__ == "__main__":
@@ -255,8 +255,8 @@ if __name__ == "__main__":
     '''
     Change the input file name/path here
     '''
-    input_filename = 'curiosity_small.png'
-    kernel_filename = 'kernel_small.png'
+    input_filename = 'curiosity_medium.png'
+    kernel_filename = 'kernel_medium.png'
 
     input_filepath = '../data/blurred_image/'+input_filename
     kernel_filepath = '../data/kernel/'+kernel_filename
@@ -340,6 +340,7 @@ if __name__ == "__main__":
     RL_energy_period = RL_energy_end - RL_energy_start
     print("RL process time = %f sec"%RL_energy_period)
     '''
+    '''
     ############# BRL deconvolution #############
     print ("start BRL deconvolution...")
 
@@ -412,4 +413,4 @@ if __name__ == "__main__":
 
     BRL_energy_period = BRL_energy_end - BRL_energy_start
     print("BRL process time = %f sec"%BRL_energy_period)
-    '''
+    

@@ -106,7 +106,7 @@ if __name__ == "__main__":
     image2 = cv2.imread('../my_deblur/kernel/straight_kernel.JPG', cv2.IMREAD_GRAYSCALE)
 
     image1_resize = cv2.resize(image1, (684, 1210), interpolation=cv2.INTER_AREA)
-    image2_resize = cv2.resize(image2, (13, 13), interpolation=cv2.INTER_AREA)
+    image2_resize = cv2.resize(image2, (25, 25), interpolation=cv2.INTER_AREA)
 
     cv2.imwrite('../my_deblur/my_image_straight.png', image1_resize)
     cv2.imwrite('../my_deblur/my_kernel_straight.png', image2_resize)
@@ -122,15 +122,19 @@ if __name__ == "__main__":
     img = Image.open(input_filepath)  # opens the file using Pillow - it's not an array yet
     img_in = np.asarray(img)
     k = Image.open(kernel_filepath)  # opens the file using Pillow - it's not an array yet
-    k_in = np.asarray(k)
+    pix = np.array(k)
 
-    for i in range(0, k_in.shape[0], 1):
-        for j in range(0, k_in.shape[1], 1):
-            if k_in[i][j] >= 90:
-                k_in[i][j] = 255
+    for i in range(0, pix.shape[0], 1):
+        for j in range(0, pix.shape[1], 1):
+            if pix[i][j] >= 90:
+                pix[i][j] = 255
             else:
-                k_in[i][j] = 0
-    
+                pix[i][j] = 0
+
+    Image.fromarray(pix).save('../my_deblur/my_kernel_straight_edit.png')
+
+    k = Image.open('../my_deblur/my_kernel_straight_edit.png')  # opens the file using Pillow - it's not an array yet
+    k_in = np.asarray(k)
     # Show image and kernel
     plt.figure()
     plt.imshow(img_in)
@@ -150,13 +154,13 @@ if __name__ == "__main__":
     Adjust parameters here
     """
     # for BRL
-    max_iter_BRL = 25
-    rk = 6
-    sigma_r = 50.0/255/255
-    lamb_da = 0.03/255
+    max_iter_BRL = 50
+    rk = 24
+    sigma_r = 55.0/255/255
+    lamb_da = 0.002/255
 
     # deblur in linear domain or not
-    to_linear = 'False'; #'True' for deblur in linear domain, 'False' for deblur in nonlinear domain
+    to_linear = 'True'; #'True' for deblur in linear domain, 'False' for deblur in nonlinear domain
 
     # BRL deconvolution
     BRL_start = time.time()
