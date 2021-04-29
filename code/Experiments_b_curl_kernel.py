@@ -47,8 +47,11 @@ def BRL(img_in, k_in, max_iter, lamb_da, sigma_r, rk, to_linear):
     sigma_s = (r_omega/3.)**2
     
     omega_window_size = int(2*r_omega) + 1
+    if omega_window_size % 2 == 0:
+        omega_window_size += 1
+
     x, y = np.mgrid[0:omega_window_size, 0:omega_window_size] - (omega_window_size-1)/2
-    gau_kernel = np.exp(-(x**2+y**2)/(2.*sigma_s))
+    gau_kernel = -(x**2+y**2)/(2.*sigma_s)
     gau_kernel = np.stack((gau_kernel, gau_kernel, gau_kernel), axis=2)
     
     pdsize = int(omega_window_size/2)
@@ -63,12 +66,16 @@ def BRL(img_in, k_in, max_iter, lamb_da, sigma_r, rk, to_linear):
         E_B_I_t = np.zeros(I_cur.shape)
         for i in range(pdsize, padded.shape[0] - pdsize, 1):
             for j in range(pdsize, padded.shape[1] - pdsize, 1):
-                value_kernel = np.exp(-((padded[i,j,:] - padded[i-pdsize:i+pdsize+1, j-pdsize:j+pdsize+1,:])**2) / (2. * sigma_r)) * ((padded[i,j,:] - padded[i-pdsize:i+pdsize+1, j-pdsize:j+pdsize+1,:]) / sigma_r)
-                total_kernel = gau_kernel * value_kernel
+                value_kernel_1 = -((padded[i,j,:] - padded[i-pdsize:i+pdsize+1, j-pdsize:j+pdsize+1,:])**2) / (2. * sigma_r)
+                value_kernel_2 = (padded[i,j,:] - padded[i-pdsize:i+pdsize+1, j-pdsize:j+pdsize+1,:]) / sigma_r
+                total_kernel = np.exp(gau_kernel+value_kernel_1) * value_kernel_2
+                '''
                 E_B_I_t[i-pdsize,j-pdsize,0] = np.sum(total_kernel[:,:,0]) # scalar
                 E_B_I_t[i-pdsize,j-pdsize,1] = np.sum(total_kernel[:,:,1]) # scalar
                 E_B_I_t[i-pdsize,j-pdsize,2] = np.sum(total_kernel[:,:,2]) # scalar
-        
+                '''
+                E_B_I_t[i-pdsize,j-pdsize,:] = np.sum(total_kernel, axis=(0,1))
+
         convolve2d_term1 = np.zeros(I_cur.shape)
         convolve2d_term1[:,:,0] = convolve2d(I_cur[:,:,0], k_in, boundary='symm', mode='same')
         convolve2d_term1[:,:,1] = convolve2d(I_cur[:,:,1], k_in, boundary='symm', mode='same')
