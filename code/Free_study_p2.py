@@ -8,7 +8,7 @@ from PIL import Image
 from load_psnr import PSNR_UCHAR3
 from deconv_RL_BRL import *
 from scipy.signal import convolve2d
-import cv2
+
 import imageio
 
 # ignore warning
@@ -58,7 +58,7 @@ def BRL(img_in, k_in, max_iter, lamb_da, sigma_r, rk, to_linear):
         padded = np.stack((padded,padded,padded), axis=2)
         for ch in range(0,3,1):
             # Pad the Image, Assume Square filter
-            padded[:,:,ch] = np.pad(I_cur[:,:,ch], ((pdsize, pdsize), (pdsize, pdsize)), 'symmetric')
+            padded[:,:,ch] = np.pad(I_cur[:,:,ch], ((pdsize, pdsize), (pdsize, pdsize)), mode='constant')
         
         E_B_I_t = np.zeros(I_cur.shape)
         for i in range(pdsize, padded.shape[0] - pdsize, 1):
@@ -70,15 +70,15 @@ def BRL(img_in, k_in, max_iter, lamb_da, sigma_r, rk, to_linear):
                 E_B_I_t[i-pdsize,j-pdsize,2] = np.sum(total_kernel[:,:,2]) # scalar
         
         convolve2d_term1 = np.zeros(I_cur.shape)
-        convolve2d_term1[:,:,0] = convolve2d(I_cur[:,:,0], k_in, boundary='symm', mode='same')
-        convolve2d_term1[:,:,1] = convolve2d(I_cur[:,:,1], k_in, boundary='symm', mode='same')
-        convolve2d_term1[:,:,2] = convolve2d(I_cur[:,:,2], k_in, boundary='symm', mode='same')
+        convolve2d_term1[:,:,0] = convolve2d(I_cur[:,:,0], k_in, boundary='fill', fillvalue=0, mode='same')
+        convolve2d_term1[:,:,1] = convolve2d(I_cur[:,:,1], k_in, boundary='fill', fillvalue=0, mode='same')
+        convolve2d_term1[:,:,2] = convolve2d(I_cur[:,:,2], k_in, boundary='fill', fillvalue=0, mode='same')
         
         convolve2d_term2 = np.zeros(I_cur.shape)
         C = B/convolve2d_term1
-        convolve2d_term2[:,:,0] = convolve2d(C[:,:,0], K_star, boundary='symm', mode='same')
-        convolve2d_term2[:,:,1] = convolve2d(C[:,:,1], K_star, boundary='symm', mode='same')
-        convolve2d_term2[:,:,2] = convolve2d(C[:,:,2], K_star, boundary='symm', mode='same')
+        convolve2d_term2[:,:,0] = convolve2d(C[:,:,0], K_star, boundary='fill', fillvalue=0, mode='same')
+        convolve2d_term2[:,:,1] = convolve2d(C[:,:,1], K_star, boundary='fill', fillvalue=0, mode='same')
+        convolve2d_term2[:,:,2] = convolve2d(C[:,:,2], K_star, boundary='fill', fillvalue=0, mode='same')
 
 
         I_next = (I_cur/(1. + lamb_da * 2. * E_B_I_t)) * convolve2d_term2
@@ -101,41 +101,19 @@ def BRL(img_in, k_in, max_iter, lamb_da, sigma_r, rk, to_linear):
     return I_cur.astype(np.uint8)
 
 if __name__ == "__main__":
-    # resize the blurred image & kernel image first
-    image1 = cv2.imread('../my_deblur/blurred_image/straight_blurred.JPG')
-    image2 = cv2.imread('../my_deblur/kernel/straight_kernel.JPG', cv2.IMREAD_GRAYSCALE)
-
-    image1_resize = cv2.resize(image1, (684, 1210), interpolation=cv2.INTER_AREA)
-    image2_resize = cv2.resize(image2, (13, 13), interpolation=cv2.INTER_AREA)
-
-    cv2.imwrite('../my_deblur/my_image_straight.png', image1_resize)
-    cv2.imwrite('../my_deblur/my_kernel_straight.png', image2_resize)
-    
     '''
     Change the input file name/path here
     '''
-    input_filename = 'my_image_straight.png'
-    kernel_filename = 'my_kernel_straight.png'
+    input_filename = 'curiosity_medium.png'
+    kernel_filename = 'kernel_medium.png'
 
-    input_filepath = '../my_deblur/'+input_filename
-    kernel_filepath = '../my_deblur/'+kernel_filename
+    input_filepath = '../data/blurred_image/'+input_filename
+    kernel_filepath = '../data/kernel/'+kernel_filename
     img = Image.open(input_filepath)  # opens the file using Pillow - it's not an array yet
     img_in = np.asarray(img)
     k = Image.open(kernel_filepath)  # opens the file using Pillow - it's not an array yet
-    pix = np.array(k)
-
-    for i in range(0, pix.shape[0], 1):
-        for j in range(0, pix.shape[1], 1):
-            pix_val = pix[i][j]
-            pix_val = round(((pix_val - 0.0)/(255.0 - 0.0)) * 255.)
-            if pix_val <= 77:
-                pix_val = 0
-            pix[i][j] = pix_val
-
-    Image.fromarray(pix).save('../my_deblur/my_kernel_straight_edit.png')
-
-    k = Image.open('../my_deblur/my_kernel_straight_edit.png')  # opens the file using Pillow - it's not an array yet
     k_in = np.asarray(k)
+    
     # Show image and kernel
     plt.figure()
     plt.imshow(img_in)
@@ -147,7 +125,6 @@ if __name__ == "__main__":
     plt.title('blur kernel')
     plt.show()
 
-    ############# BRL deconvolution #############
     print ("start BRL deconvolution...")
 
     # RL&BRL parameters
@@ -155,10 +132,10 @@ if __name__ == "__main__":
     Adjust parameters here
     """
     # for BRL
-    max_iter_BRL = 25
-    rk = 6
-    sigma_r = 55.0/255/255
-    lamb_da = 0.06/255
+    max_iter_BRL = 55
+    rk = 12
+    sigma_r = 25.0/255/255
+    lamb_da = 0.001/255
 
     # deblur in linear domain or not
     to_linear = 'False'; #'True' for deblur in linear domain, 'False' for deblur in nonlinear domain
@@ -175,7 +152,7 @@ if __name__ == "__main__":
     plt.show()
 
     # store image
-    imageio.imwrite('../my_deblur/my_deblur_straight.png', BRL_result)
+    imageio.imwrite('../my_RL_BRL_result/BRL_'+ 's' +'_iter%d_rk%d_si%0.2f_lam%0.3fzero_padding.png' %(max_iter_BRL, rk, sigma_r*255*255, lamb_da*255), BRL_result)
 
     BRL_period = BRL_end - BRL_start
     print("BRL process time = %f sec"%BRL_period)

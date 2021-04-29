@@ -65,12 +65,12 @@ print( "Elapsed time: %f seconds.\n" %t_int )
 # output color image
 x = np.clip(x, 0, 1.0)*255.0
 x = (x+0.5).astype(np.uint8)
-imageio.imwrite('../result/deblur_edgetaper_norm1.png', x)
+imageio.imwrite('../my_RL_BRL_result/deblur_edgetaper_norm1_lam0.1.png', x)
 
 # compare with reference answer
 img_ref_norm1 = Image.open('../ref_ans/curiosity_medium/deblur_edgetaper_norm1.png')
 img_ref_norm1 = np.asarray(img_ref_norm1)
-your_norm1 = Image.open('../result/deblur_edgetaper_norm1.png')
+your_norm1 = Image.open('../my_RL_BRL_result/deblur_edgetaper_norm1.png')
 your_norm1 = np.asarray(your_norm1)
 
 print("psnr = %f" %PSNR_UCHAR3(img_ref_norm1, your_norm1))

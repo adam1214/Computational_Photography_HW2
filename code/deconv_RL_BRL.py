@@ -255,8 +255,8 @@ if __name__ == "__main__":
     '''
     Change the input file name/path here
     '''
-    input_filename = 'curiosity_medium.png'
-    kernel_filename = 'kernel_medium.png'
+    input_filename = 'curiosity_small.png'
+    kernel_filename = 'kernel_small.png'
 
     input_filepath = '../data/blurred_image/'+input_filename
     kernel_filepath = '../data/kernel/'+kernel_filename
@@ -340,7 +340,7 @@ if __name__ == "__main__":
     RL_energy_period = RL_energy_end - RL_energy_start
     print("RL process time = %f sec"%RL_energy_period)
     '''
-    '''
+    
     ############# BRL deconvolution #############
     print ("start BRL deconvolution...")
 
@@ -351,7 +351,7 @@ if __name__ == "__main__":
     # for BRL
     max_iter_BRL = 25
     rk = 6
-    sigma_r = 50.0/255/255
+    sigma_r = 100.0/255/255
     lamb_da = 0.03/255
 
     # deblur in linear domain or not
@@ -413,4 +413,4 @@ if __name__ == "__main__":
 
     BRL_energy_period = BRL_energy_end - BRL_energy_start
     print("BRL process time = %f sec"%BRL_energy_period)
-    
+    '''
