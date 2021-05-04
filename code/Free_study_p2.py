@@ -152,7 +152,7 @@ if __name__ == "__main__":
     plt.show()
 
     # store image
-    imageio.imwrite('../my_RL_BRL_result/Free_study_p2/BRL_'+ 's' +'_iter%d_rk%d_si%0.2f_lam%0.3fzero_padding.png' %(max_iter_BRL, rk, sigma_r*255*255, lamb_da*255), BRL_result)
+    imageio.imwrite('../my_RL_BRL_result/Free_study_p2/BRL_'+ 'm' +'_iter%d_rk%d_si%0.2f_lam%0.3fzero_padding.png' %(max_iter_BRL, rk, sigma_r*255*255, lamb_da*255), BRL_result)
 
     BRL_period = BRL_end - BRL_start
     print("BRL process time = %f sec"%BRL_period)

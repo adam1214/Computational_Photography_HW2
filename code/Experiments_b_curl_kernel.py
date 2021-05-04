@@ -116,8 +116,8 @@ if __name__ == "__main__":
     image2_resize = cv2.resize(image2, (13, 13), interpolation=cv2.INTER_AREA)
 
     cv2.imwrite('../my_deblur/my_image_curl.png', image1_resize)
-    cv2.imwrite('../my_deblur/my_kernel_curl.png', image2_resize)
-
+    cv2.imwrite('../my_deblur/kernel/my_kernel_curl.png', image2_resize)
+    
     '''
     Change the input file name/path here
     '''
@@ -125,12 +125,24 @@ if __name__ == "__main__":
     kernel_filename = 'my_kernel_curl.png'
 
     input_filepath = '../my_deblur/'+input_filename
-    kernel_filepath = '../my_deblur/'+kernel_filename
+    kernel_filepath = '../my_deblur/kernel/'+kernel_filename
     img = Image.open(input_filepath)  # opens the file using Pillow - it's not an array yet
     img_in = np.asarray(img)
     k = Image.open(kernel_filepath)  # opens the file using Pillow - it's not an array yet
-    k_in = np.asarray(k)
+    pix = np.array(k)
     
+    for i in range(0, pix.shape[0], 1):
+        for j in range(0, pix.shape[1], 1):
+            pix_val = pix[i][j]
+            pix_val = round(((pix_val - 0.0)/(255.0 - 0.0)) * 255.)
+            if pix_val <= 44 or j == 0 or j == (pix.shape[1] - 1) or i == 0 or i == (pix.shape[0] - 1):
+                pix_val = 0
+            pix[i][j] = pix_val
+    
+    Image.fromarray(pix).save('../my_deblur/my_kernel_curl.png')
+
+    k = Image.open('../my_deblur/my_kernel_curl.png')  # opens the file using Pillow - it's not an array yet
+    k_in = np.asarray(k)
     # Show image and kernel
     plt.figure()
     plt.imshow(img_in)

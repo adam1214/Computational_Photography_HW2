@@ -305,13 +305,13 @@ if __name__ == "__main__":
     plt.show()
 
     # store image
-    imageio.imwrite('../my_RL_BRL_result/RL_'+ 's' +'_iter%d.png' %(max_iter_RL), RL_result)
+    imageio.imwrite('../my_RL_BRL_result/RL_'+ 'm' +'_iter%d.png' %(max_iter_RL), RL_result)
 
     # compare with reference answer and show processing time
     img_ref_RL = Image.open('../ref_ans/curiosity_medium/rl_deblur55.png')
 
     img_ref_RL = np.asarray(img_ref_RL)
-    your_RL = Image.open('../my_RL_BRL_result/RL_'+ 's' +'_iter%d.png' %(max_iter_RL))
+    your_RL = Image.open('../my_RL_BRL_result/RL_'+ 'm' +'_iter%d.png' %(max_iter_RL))
     your_RL = np.asarray(your_RL)
 
     print("psnr = %f" %PSNR_UCHAR3(img_ref_RL, your_RL))
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     print("RL process time = %f sec"%RL_period)
     
     ############# RL energy #############
-    I_filename = 'RL_s_iter55.png'
+    I_filename = 'RL_m_iter55.png'
     I_filepath = '../my_RL_BRL_result/' + I_filename
     I = Image.open(I_filepath)
     I_in = np.asarray(I)
@@ -387,7 +387,7 @@ if __name__ == "__main__":
     print("BRL process time = %f sec"%BRL_period)
     '''
     ############# BRL energy #############
-    I_filename = 'BRL_s_iter55_rk12_si25.00_lam0.006.png'
+    I_filename = 'BRL_m_iter55_rk12_si25.00_lam0.006.png'
     I_filepath = '../my_RL_BRL_result/' + I_filename
     I = Image.open(I_filepath)
     I_in = np.asarray(I)

@@ -116,7 +116,7 @@ if __name__ == "__main__":
     image2_resize = cv2.resize(image2, (13, 13), interpolation=cv2.INTER_AREA)
 
     cv2.imwrite('../my_deblur/my_image_straight.png', image1_resize)
-    cv2.imwrite('../my_deblur/my_kernel_straight.png', image2_resize)
+    cv2.imwrite('../my_deblur/kernel/my_kernel_straight.png', image2_resize)
     
     '''
     Change the input file name/path here
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     kernel_filename = 'my_kernel_straight.png'
 
     input_filepath = '../my_deblur/'+input_filename
-    kernel_filepath = '../my_deblur/'+kernel_filename
+    kernel_filepath = '../my_deblur/kernel/'+kernel_filename
     img = Image.open(input_filepath)  # opens the file using Pillow - it's not an array yet
     img_in = np.asarray(img)
     k = Image.open(kernel_filepath)  # opens the file using Pillow - it's not an array yet
@@ -139,9 +139,9 @@ if __name__ == "__main__":
                 pix_val = 0
             pix[i][j] = pix_val
 
-    Image.fromarray(pix).save('../my_deblur/my_kernel_straight_edit.png')
+    Image.fromarray(pix).save('../my_deblur/my_kernel_straight.png')
 
-    k = Image.open('../my_deblur/my_kernel_straight_edit.png')  # opens the file using Pillow - it's not an array yet
+    k = Image.open('../my_deblur/my_kernel_straight.png')  # opens the file using Pillow - it's not an array yet
     k_in = np.asarray(k)
     # Show image and kernel
     plt.figure()
@@ -164,8 +164,8 @@ if __name__ == "__main__":
     # for BRL
     max_iter_BRL = 25
     rk = 6
-    sigma_r = 5.0/255/255
-    lamb_da = 0.001/255
+    sigma_r = 50.0/255/255
+    lamb_da = 0.03/255
 
     # deblur in linear domain or not
     to_linear = 'False'; #'True' for deblur in linear domain, 'False' for deblur in nonlinear domain
